@@ -1,5 +1,35 @@
 from tkinter import *
 from PIL import ImageTk
+import pymysql
+from tkinter import messagebox
+
+def connect_database():
+    if emailEntry.get()=='' or userEntry.get()=='' or passwordEntry.get()=='' or confirmPasswordEntry.get()=='':
+        messagebox.showerror('Error','All fields are required')
+    elif passwordEntry.get()!=confirmPasswordEntry.get():
+        messagebox.showerror('Error','password Mismatched')
+    elif check.get()==0:
+        messagebox.showerror('Error','Please accept Terms & Conditions')
+    else:
+        try:
+            con=pymysql.connect(host='localhost',user='root', password='2101030')
+            mycursor=con.cursor()
+        except:
+            messagebox.showerror('Error','Database connectivity Issue ,please try again')
+        try:
+            query= 'create database userdata'
+            mycursor.execute(query)
+            query='use userdata'
+            mycursor.execute(query)
+            query='create table data(id int auto_increment primary key not null, email varchar(50), username varchar(50), password varchar(20) )'
+            mycursor.execute(query)
+        except:
+            mycursor.execute('use userdata')
+
+        query= 'insert into data(email, username, password)values(%s,%s,%s)'
+        mycursor.execute(query,(emailEntry.get(), userEntry.get(), passwordEntry.get()))
+        con.commit() #database e kichu update korte use kora hoy jate 'con' help kore
+
 
 
 
@@ -60,15 +90,15 @@ confirmPasswordLabel.grid(row=8,column=0, sticky='W',padx=25,pady=(10,0))
 confirmPasswordEntry= Entry(frame,width=30 ,font=('Microsoft Yahei UI Light', 10, 'bold'), bg='firebrick1', fg='white')
 confirmPasswordEntry.grid(row=9,column=0, sticky='W',padx=25)
 
-
+check= IntVar()
 termsCondition=Checkbutton(frame, text="I agree to the terms and conditions",font=('open Sans', 9, 'bold'), bg='white',
-                           activebackground= 'white',fg='firebrick1' ,activeforeground='firebrick1',cursor='hand2')
+                           activebackground= 'white',fg='firebrick1' ,activeforeground='firebrick1',cursor='hand2', variable= check)
 termsCondition.grid(row=10,column=0, sticky='w', pady=10,padx=15)
 
 
 
 signupButton=Button(frame, text="Signup",font=('open Sans', 15, 'bold'), 
-                    bg= 'firebrick1',fg='white', width=19 ,activebackground='firebrick1',activeforeground='white')
+                    bg= 'firebrick1',fg='white', width=19 ,activebackground='firebrick1',activeforeground='white', command= connect_database)
 signupButton.grid(row=11,column=0,pady=10)
 
 haveAccountButton=Button(frame, text="Don't have an account?", font=('open Sans', 9, 'bold'),fg='firebrick1', bg='white',bd=0)
