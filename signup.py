@@ -3,6 +3,12 @@ from PIL import ImageTk
 import pymysql
 from tkinter import messagebox
 
+def clear():
+    emailEntry.delete(0,END)
+    userEntry.delete(0,END)
+    passwordEntry.delete(0,END)
+    confirmPasswordEntry.delete(0,END)
+
 def connect_database():
     if emailEntry.get()=='' or userEntry.get()=='' or passwordEntry.get()=='' or confirmPasswordEntry.get()=='':
         messagebox.showerror('Error','All fields are required')
@@ -25,10 +31,23 @@ def connect_database():
             mycursor.execute(query)
         except:
             mycursor.execute('use userdata')
-
-        query= 'insert into data(email, username, password)values(%s,%s,%s)'
-        mycursor.execute(query,(emailEntry.get(), userEntry.get(), passwordEntry.get()))
-        con.commit() #database e kichu update korte use kora hoy jate 'con' help kore
+        
+        query= 'select * from data where username=%s'
+        mycursor.execute(query,(userEntry.get()))
+        
+        row= mycursor.fetchone()
+        if row is not None:
+            messagebox.showerror('Error','Username already exists')
+        else:
+            query= 'insert into data(email, username, password)values(%s,%s,%s)'
+            mycursor.execute(query,(emailEntry.get(), userEntry.get(), passwordEntry.get()))
+            con.commit() #database e kichu update korte use kora hoy jate 'con' help kore
+            con.close()
+            messagebox.showinfo('Success','Registration is successful')
+            clear()
+            check.set(0)
+            signup_window.destroy()
+            import signin
 
 
 
