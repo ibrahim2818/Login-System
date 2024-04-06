@@ -2,6 +2,9 @@ from tkinter import *
 from PIL import ImageTk
 import pymysql
 from tkinter import messagebox
+import smtplib
+import random
+
 
 def clear():
     emailEntry.delete(0,END)
@@ -34,43 +37,92 @@ def connect_database():
         
         query= 'select * from data where username=%s'
         mycursor.execute(query,(userEntry.get()))
-        
         row= mycursor.fetchone()
-        if row is not None:
-            messagebox.showerror('Error','Username already exists')
+        query= 'select * from data where email=%s'
+        mycursor.execute(query,(emailEntry.get()))
+        row1= mycursor.fetchone()
+        if row is not None or row1 is not None:
+            messagebox.showerror('Error','Username or email already exists')
+            
         else:
-            query= 'insert into data(email, username, password)values(%s,%s,%s)'
-            mycursor.execute(query,(emailEntry.get(), userEntry.get(), passwordEntry.get()))
-            con.commit() #database e kichu update korte use kora hoy jate 'con' help kore
+            global OTP
+            global email1,user1,password1
+            password = 'nwog fzkf yrrh fxsx'
+            my_email= 'janinak2018@gmail.com'
+            connection= smtplib.SMTP('smtp.gmail.com')
+            connection.starttls()
+            connection.login(user=my_email, password= password)
+            connection.sendmail(from_addr=my_email, to_addrs=emailEntry.get(), msg=f"your otp- {OTP}")
+            email1= emailEntry.get()
+            user1= userEntry.get()
+            password1= passwordEntry.get()
+            frame.destroy()
+
+
+            
+            otpLabel.place(x=580, y=240)
+           
+            otpEntry.place(x=580,y=260)
+            
+            varifyButton.place(x=580,y=300)
+email1=None
+user1=None
+password1= None
+
+
+def varify_otp():
+    global mycursor, con
+    global user1, email1, password1
+
+    entered_otp = otpEntry.get()
+    try:
+        con = pymysql.connect(host='localhost', user='root', password='2101030', database='userdata')
+        mycursor = con.cursor()
+    except pymysql.err.OperationalError as e:
+        messagebox.showerror('Error', f'Database connectivity issue: {str(e)}')
+        return
+
+    if entered_otp.isdigit() and int(entered_otp) == OTP:
+        messagebox.showinfo('Verification', 'ID Verified')
+        try:
+            query = 'INSERT INTO data(email, username, password) VALUES (%s, %s, %s)'
+            mycursor.execute(query, (email1, user1, password1))
+            con.commit()
             con.close()
-            messagebox.showinfo('Success','Registration is successful')
-            clear()
+            messagebox.showinfo('Success', 'Registration is successful')
+            
             check.set(0)
             signup_window.destroy()
             import signin
+        except pymysql.err.ProgrammingError as e:
+            messagebox.showerror('Database Error', f'Database error occurred: {str(e)}')
+    else:
+        messagebox.showerror('Verification', 'Invalid OTP')
 
-
-
-
-
-signup_window=Tk()
 
 def login_page():
     signup_window.destroy()
     import signin
+    
+OTP= random.randint(1000,10000)
 
+
+#for window
+
+signup_window=Tk()                           
 
 signup_window.geometry('990x660+50+50') 
 signup_window.resizable(0,0) 
 signup_window.title('Signup Page')  
-
 
 background=ImageTk.PhotoImage(file='bg.jpg')
 backgroundLabel=Label(signup_window, image= background)
 backgroundLabel.place(x=0, y=0)
 
 
-frame=Frame(signup_window,bg='white')
+
+
+frame=Frame(signup_window,bg='white') #making frame
 frame.place(x=554, y=100)
 
 heading=Label(frame, text= 'CREATE AN ACCOUNT',font=('Microsoft Yahei UI Light', 18, 'bold'), fg='firebrick1',bg='white')
@@ -119,6 +171,19 @@ termsCondition.grid(row=10,column=0, sticky='w', pady=10,padx=15)
 signupButton=Button(frame, text="Signup",font=('open Sans', 15, 'bold'), 
                     bg= 'firebrick1',fg='white', width=19 ,activebackground='firebrick1',activeforeground='white', command= connect_database)
 signupButton.grid(row=11,column=0,pady=10)
+
+
+
+#otp button
+otpLabel= Label(signup_window, text= 'OTP',font=('open sans',10,'bold' ), 
+                            bg='white', bd=0,fg= 'firebrick1')
+otpEntry= Entry(signup_window, text= 'OTP',font=('open sans',13,'bold' ), 
+                            fg='white',bg= 'firebrick1',width=25)
+varifyButton= Button(signup_window, text= 'Varify',font=('open sans', 16,'bold' ), 
+                                 fg= 'white', bg= 'firebrick1',width=19,command=varify_otp,
+                                activebackground= 'firebrick1', activeforeground= 'white',bd=0)
+
+
 
 haveAccountButton=Button(frame, text="Don't have an account?", font=('open Sans', 9, 'bold'),fg='firebrick1', bg='white',bd=0)
 haveAccountButton.grid(row=12, column=0,sticky='W', pady=5, padx=15)
