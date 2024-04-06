@@ -1,6 +1,8 @@
 from tkinter import *
+from tkinter import messagebox
 
 from PIL import ImageTk  # for adding jpg images
+import pymysql
 
 #functionality part
 def user_enter(meow):
@@ -27,6 +29,28 @@ def signup_page():
     login_window.destroy()
     import signup
     
+def login_user():
+    if usernameEntry.get() == '' or passwordEntry.get() == '':
+        messagebox.showerror('error', 'Please enter all required fields')
+    else:
+        try:
+            con=pymysql.connect(host='localhost', user='root', password='2101030')
+            mycursor=con.cursor()
+        except:
+            messagebox.showerror('error', 'connection error')
+        query= 'use userdata'
+        mycursor.execute(query)
+        query='SELECT *from data where username=%s and password=%s'
+        mycursor.execute(query,(usernameEntry.get(), passwordEntry.get()))
+        row=mycursor.fetchone()
+        if row is None:
+            messagebox.showerror('Error', 'Invalid username or password')
+        else:
+            messagebox.showinfo('Welcome', "Login successful")
+
+def forget_data():
+    login_window.destroy()
+    import otp
 
 
 
@@ -70,19 +94,24 @@ Frame(login_window, width=250,height=2,bg='firebrick1').place(x=580, y=272)
 
 
 
+
 #eye Button
 openeye= PhotoImage(file='openeye.png')
 eyeButton= Button(login_window, image=openeye, bd=0, bg='white',activebackground= 'white',cursor='hand2', command= hide)
 eyeButton.place(x=800,y=243)
 
 
-#forgate passwort
-forgetButton= Button(login_window, text='Forget Password?',bd=0, bg='white',activebackground='white',cursor='hand2',font=("Microsoft Yahei UI Light",10,"bold"),fg='firebrick1', activeforeground='firebrick1')
+
+#forget password
+forgetButton= Button(login_window, text='Forget Password?',bd=0, bg='white',activebackground='white',
+                     cursor='hand2',font=("Microsoft Yahei UI Light",10,"bold"),fg='firebrick1', 
+                     activeforeground='firebrick1',command= forget_data)
 forgetButton.place(x=720,y=280)
 
 
+
 loginButton= Button(login_window,text='Login',font= ('open Sans',16,'bold'),fg='white',bg='firebrick1',activebackground='firebrick1', 
-                    activeforeground='white', cursor='hand2',bd=0,width=19)
+                    activeforeground='white', cursor='hand2',bd=0,width=19,command=login_user)
 loginButton.place(x=578,y=350)
 
 
@@ -99,7 +128,6 @@ googleLabel= Label(login_window,image=google_logo, bg='white').place(x=690,y=440
 
 twitter_logo=PhotoImage(file='twitter.png')
 twitterLabel= Label(login_window,image=twitter_logo, bg='white').place(x=740,y=440)
-
 
 
 
