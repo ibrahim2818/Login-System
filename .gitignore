@@ -3,3 +3,4 @@ __pycache__/
 
 # Ignore enviornment setup 
 my_venv 
+my_env
